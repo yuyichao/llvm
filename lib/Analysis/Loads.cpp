@@ -380,6 +380,21 @@ Value *llvm::FindAvailablePtrLoadStore(Value *Ptr, Type *AccessTy,
         if (LI->isAtomic() < AtLeastAtomic)
           return nullptr;
 
+        if (AccessTy->isPointerTy()) {
+          PointerType *Ty1 = cast<PointerType>(AccessTy);
+          if (PointerType *Ty2 = dyn_cast<PointerType>(LI->getType())) {
+            if (Ty1->getAddressSpace() != Ty2->getAddressSpace()) {
+              return nullptr;
+            }
+          }
+          else if (DL.isNonIntegralPointerType(Ty1)) {
+            return nullptr;
+          }
+        }
+        else if (DL.isNonIntegralPointerType(LI->getType())) {
+          return nullptr;
+        }
+
         if (IsLoadCSE)
             *IsLoadCSE = true;
         return LI;
@@ -398,6 +413,21 @@ Value *llvm::FindAvailablePtrLoadStore(Value *Ptr, Type *AccessTy,
         // other way around.
         if (SI->isAtomic() < AtLeastAtomic)
           return nullptr;
+
+        if (AccessTy->isPointerTy()) {
+          PointerType *Ty1 = cast<PointerType>(AccessTy);
+          if (PointerType *Ty2 = dyn_cast<PointerType>(SI->getValueOperand()->getType())) {
+            if (Ty1->getAddressSpace() != Ty2->getAddressSpace()) {
+              return nullptr;
+            }
+          }
+          else if (DL.isNonIntegralPointerType(Ty1)) {
+            return nullptr;
+          }
+        }
+        else if (DL.isNonIntegralPointerType(SI->getValueOperand()->getType())) {
+          return nullptr;
+        }
 
         if (IsLoadCSE)
           *IsLoadCSE = false;
