@@ -232,6 +232,7 @@ private:
       setHasNoInfs(true);
       setHasNoSignedZeros(true);
       setHasAllowReciprocal(true);
+      setHasAllowContract(true);
     }
   }
 
